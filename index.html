@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  <title>Avatar</title>
+  <meta name="description" content="Making and downloading avatars.">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style type="text/css">
+    button, label, canvas, div {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: monospace;
+      font-size: 14px;
+    }
+
+    #input-file {
+      position: absolute;
+      left: -10000px;
+    }
+
+    #preview {
+      border: 1px solid #eee;
+      margin: 10px 0;
+      background: #eee;
+      width: 100%;
+    }
+
+    .frame-option {
+      padding: 10px;
+      line-height: 0;
+      width: 25%;
+      background: transparent;
+      border: 0;
+    }
+
+    .frame-option:focus {
+      border: 1px solid #669ada;
+      outline: none;
+      position: relative;
+      padding: 9px;
+      border-radius: 10px;
+    }
+
+    .frame-option img {
+      border-radius: 5px;
+      background-image: url(./placeholder.png);
+      background-size: 100% 100%;
+      pointer-events: none;
+    }
+
+    .frame-option:not(:first-child) {
+      margin-left: -1px;
+    }
+
+    .wrapper {
+      width: 100%;
+      padding: 10px;
+      max-width: 360px;
+      min-width: 240px;
+      margin: 0 auto;
+    }
+
+    .action {
+      font-size: 13px;
+      text-decoration: none;
+      cursor: pointer;
+      color: #669ada;
+      padding: 10px 20px;
+      border-radius: 50px;
+      border: 1px solid;
+      display: block;
+      text-align: center;
+    }
+
+    .action[href=''] {
+      display: none;
+    }
+
+    .buttons {
+      flex-wrap: wrap;
+      display: flex;
+      margin-bottom: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <label class="action">
+      <input type="file" id="input-file" accept="image/*">
+      Select avatar
+    </label>
+    <canvas id="preview" width="500" height="500" title="Preview"></canvas><br>
+    <div class="buttons">
+      <button type="button" class="frame-option">
+        <img src="./frame-01.png" alt="Frame option 1" width="100%">
+      </button>
+      <button type="button" class="frame-option">
+        <img src="./frame-02.png" alt="Frame option 2" width="100%">
+      </button>
+      <button type="button" class="frame-option">
+        <img src="./frame-03.png" alt="Frame option 3" width="100%">
+      </button>
+      <button type="button" class="frame-option">
+        <img src="./frame-04.png" alt="Frame option 4" width="100%">
+      </button>
+    </div>
+    <a download="framed-avatar.png" class="action" id="download-link" href="">Save avatar</a>
+    <img src="./placeholder.png" alt="" width="1" id="placeholder" hidden>
+  </div>
+
+  <script type="text/javascript">
+    const input = document.getElementById('input-file')
+    const canvas = document.getElementById('preview')
+    const context = canvas.getContext('2d')
+    const ph = document.getElementById('placeholder')
+    const dlLink = document.getElementById('download-link')
+    dlLink.hidden = true
+
+    input.addEventListener('change', drawImageFromInput)
+
+    function drawImageFromInput (callback) {
+      context.clearRect(0, 0, 500, 500)
+
+      if (input.files.length === 0) {
+        context.drawImage(ph, 0, 0, 500, 500)
+        if (typeof callback === 'function') callback()
+      } else {
+        const img = new Image()
+        img.addEventListener('load', function() {
+          context.drawImage(img, 0, 0, 500, 500)
+          for(var optionImage of document.querySelectorAll('.frame-option img')) {
+            optionImage.style.backgroundImage = `url("${img.src}")`
+          }
+
+          if (typeof callback === 'function') callback()
+        })
+        img.src = URL.createObjectURL(input.files[0])
+      }
+
+    }
+
+    function prepareDownloadLink () {
+      if (input.files[0]) {
+        dlLink.setAttribute('download', input.files[0].name.replace(/\.\w+$/, '-framed.png') ) }
+      dlLink.hidden = false
+      dlLink.href = canvas.toDataURL()
+    }
+
+    for (var button of document.querySelectorAll('.frame-option')) {
+      button.addEventListener('click', function (event) {
+        drawImageFromInput(function () {
+          const image = event.target.querySelector('img')
+          context.drawImage(image, 0, 0, 500, 500)
+          prepareDownloadLink()
+        })
+      })
+    }
+
+    placeholder.onload = drawImageFromInput
+  </script>
+
+</body>
+</html>
